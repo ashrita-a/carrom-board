@@ -24,3 +24,4 @@ class Rules:
                 frame.grid(row=i, column=j)  # allows every 'frame' to be attached to the window
 
 
+

@@ -66,7 +66,7 @@ cue_ball = create_ball(15, (300, 300))
 
 #create pool table cushions
 cushions = [
-    [(0,0), (0, 40), (500,40), (500, 0)],
+    [(0,0), (0, 40), (500,40), (1000, 0)], [(100,0), (100, 40), (600,40), (600, 0)]
 ]
 
 
@@ -75,8 +75,6 @@ def create_cushion(poly_dims):
     body = pymunk.Body(body_type = pymunk.Body.STATIC)
     body.position = ((0,0))
     shape = pymunk.Poly(body, poly_dims)
-
-
     space.add(body, shape)
 
 

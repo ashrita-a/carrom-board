@@ -1,0 +1,65 @@
+import os
+import tkinter as tk
+from tkinter import *
+import pymunk.pygame_util
+import pygame
+import pymunk
+
+
+root = tk.Tk()
+embed = tk.Frame(root, width = 500, height = 500) #creates embed frame for pygame window
+embed.grid(columnspan = (600), rowspan = 500) # Adds grid
+embed.pack(side = LEFT) #packs window to the left
+buttonwin = tk.Frame(root, width = 75, height = 500)
+buttonwin.pack(side = LEFT)
+os.environ['SDL_WINDOWID'] = str(embed.winfo_id())
+screen = pygame.display.set_mode((500,500))
+screen.fill(pygame.Color(255,255,255))
+pygame.display.init()
+pygame.display.update()
+
+# the space
+space = pymunk.Space() #defines the shape in which Pymunk physics is applied
+static_body = space.static_body
+options = pymunk.pygame_util.DrawOptions(screen)
+options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES #shows only shapes, not constraints
+
+class Coin:
+    def __init__(self, x, y, coin_radius, colour):
+        self.body = pymunk.Body()  # defines the coin as a pymunk body
+        self.body.position = x, y  # takes in x,y coords to position the body on the screen
+        self.coin_radius = coin_radius  # takes in argument coin_radius to set the size of the coin
+        self.shape = pymunk.Circle(self.body, coin_radius)  # sets the shape of the coin as a circle
+        if colour == "red" :
+            self.shape.color = (255, 80, 100, 255) # makes the coin red
+        elif colour == "white":
+            self.shape.color = (255, 255, 255, 255) # makes the coin white
+        elif colour == "black":
+            self.shape.color = (0, 0, 0, 0) # makes the coin black
+        self.shape.mass = 5  # unitless mass for coin
+        self.pivot = pymunk.PivotJoint(static_body, self.body, (0, 0), (0, 0))  # using pivot joint for friction
+        self.pivot.max_bias = 0  # disables joint correction
+        self.pivot.max_force = 800  # emulates linear friction
+        self.shape.elasticity = 0.8
+
+body = pymunk.Body()
+shape = pymunk.Circle(body, 500)
+def draw(self):
+    space.add(body, shape)
+    pygame.draw.circle(screen, (0,0,0), (250,250), 125)
+    pygame.display.update()
+
+
+
+
+# adds the coin to the screen
+    # pygame.draw.circle(screen, self.shape.color, convert_coordinates(self.body.position), self.coin_radius)
+    #  to draw the coin on the screen
+
+button1 = Button(buttonwin,text = 'Draw',  command=draw)
+button1.pack(side=LEFT)
+root.update()
+
+while True:
+    pygame.display.update()
+    root.update()
