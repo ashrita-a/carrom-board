@@ -71,6 +71,19 @@ circle_slide_dim = (805, 500)
 def convert_coordinates(point):
     return int(point[0]), 678 - int(point[1])
 
+def originalposition(coins):
+    count = 0
+    bool = False
+    for i in range(0,19):
+        if (coins[i].body.position) == (properties[i][0], properties[i][1]):
+            count = count + 1
+    if count == 18:
+        bool = True
+    else:
+        bool = False
+    return bool
+
+
 
 class Coin:
     def __init__(self, x, y, coin_radius, colour):
@@ -426,7 +439,7 @@ class Gamefunc():
                 self.current_player_colour = 'black'
         return(self.current_player)
 
-    def holed_Check_temp(self, coins):
+    def perform_coin_in_hole(self, coins):
         for i in range (0, 19):
             if coins[i].if_holed() == True and coins[i].get_holed() == False: #checks if the coin is holed and not already removed
                 coins[i].set_holed(True)
@@ -486,22 +499,23 @@ class Gamefunc():
         redcoins = 0
         mycoins = 0
         othercoins = 0
-        playerchange = False
+        change_player = False
         self.current_player = current_player
         for i in range(0,19):
             if self.red_hit == False:
-                if coins[i].get_holed == True and coins[i].getColour == self.current_player_colour:
+                if coins[i].get_holed() == True and coins[i].getColour() == self.current_player_colour:
                     mycoins = mycoins + 1
-                elif coins[i].get_holed == True and coins[i].getColour != self.current_player_colour and coins[i].getColour != 'red':
+                    # coins[i].set_holed(False)
+                elif coins[i].get_holed() == True and coins[i].getColour() != self.current_player_colour and coins[i].getColour() != 'red':
                     othercoins = othercoins + 1
                     coins[i].resetPosition(properties[i][0], properties[i][1])
                     coins[i].set_holed(False)
-            elif coins[i].getColour == 'red':
+                elif coins[i].getColour() == 'red' and coins[i].get_holed() == True:
                     redcoins = redcoins + 1
             else:
-                if coins[i].get_holed == True and coins[i].getColour == self.current_player_colour:
+                if coins[i].get_holed() == True and coins[i].getColour() == self.current_player_colour:
                     mycoins = mycoins + 1
-                elif coins[i].get_holed == True and coins[i].getColour != self.current_player_colour and coins[i].getColour != 'red':
+                elif coins[i].get_holed() == True and coins[i].getColour() != self.current_player_colour and coins[i].getColour() != 'red':
                     othercoins = othercoins + 1
                     coins[i].resetPosition(properties[i][0], properties[i][1])
                     coins[i].set_holed(False)
@@ -510,41 +524,41 @@ class Gamefunc():
                 if mycoins >0:
                     self.current_team_points = self.current_team_points + 5
                     self.noofcoinsonboard = self.noofcoinsonboard - 1 - mycoins
-                    playerchange = True
+                    change_player = True
                 elif othercoins > 0:
                     coins[18].set_holed(False)
                     coins[18].resetPosition(properties[18][0], properties[18][1])
-                    playerchange = True
+                    change_player = True
                 elif mycoins == 0 and othercoins == 0:
-                    playerchange = False
+                    change_player = False
                     self.red_hit = True
             else:
                 if mycoins >0:
                     self.current_team_points = self.current_team_points + mycoins
-                    playerchange = False
+                    change_player = False
                     self.noofcoinsonboard = self.noofcoinsonboard - mycoins
                 elif othercoins > 0:
-                    playerchange = True
+                    change_player = True
                 elif othercoins == 0 and mycoins == 0:
-                    playerchange = True
+                    change_player = True
         else:
             if mycoins > 0:
                 self.red_hit = False
-                playerchange = True
+                change_player = True
                 self.current_team_points = self.current_team_points + 5
                 self.noofcoinsonboard = self.noofcoinsonboard - 1 - mycoins
             elif othercoins > 0:
                 self.red_hit = False
-                playerchange = True
+                change_player = True
                 coins[18].set_holed(False)
                 coins[18].resetPosition(properties[18][0], properties[18][1])
             elif mycoins == 0 and othercoins == 0:
                 self.red_hit = False
-                playerchange = True
+                change_player = True
                 coins[18].set_holed(False)
                 coins[18].resetPosition(properties[18][0], properties[18][1])
 
-        return(playerchange)
+        return change_player
 
 
 
@@ -663,29 +677,40 @@ def game():
     directionslider = Circular_Slider(80, circle_base_dims, circle_slide_dim, 10)
 
     noofplayers = 4
-    newgame = Gamefunc(0, 4, 0, 0, '', 0, 0, 0, 0, 0, sliderpos, sliderforce, directionslider, StrikerCoin, Gobutton)
+    newgame = Gamefunc(0, 4, 0, 0, 'black', 0, 0, 0, 0, 0, sliderpos, sliderforce, directionslider, StrikerCoin, Gobutton)
 
     current_player_local = 1
     noofplayers_local = noofplayers
     change = False
+    player_striked = False
+
+
+    # event handler
     while True:
         clock.tick(FPS)  # defines how often the space updates
         space.step(1 / FPS)  # space-time moved in steps using this function
         # holed_Check_temp(coin)  #checks if coins have been holed
-        newgame.holed_Check_temp(coin)
+        newgame.perform_coin_in_hole(coin)
         # changeplayerbool = newgame.holed(coin, current_player_local)
         # fill bgd
         screen.fill(BG)
-        # event handler
+
+        if not CoinsMoving(coin, StrikerCoin) and player_striked and not originalposition(coin) :
+            change = newgame.holed_check(coin, current_player_local)
+            player_striked = False
+            if change:
+                current_player_local = player_change(current_player_local, noofplayers_local)
 
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 newgame.player_strike(current_player_local, coin, StrikerCoin)
                 if Gobutton.CheckClicked(button_dimensions) == 'True':
+                    player_striked = True
+                    pygame.time.wait(10)
                     # while not CoinsMoving(coin, StrikerCoin):
                     #     change = newgame.holed_check(coin, current_player_local)
-                    if change == True:
-                        current_player_local = player_change(current_player_local, noofplayers_local)
+                    # if change == True:
+                    #     current_player_local = player_change(current_player_local, noofplayers_local)
 
             if event.type == pygame.QUIT:
                 return
